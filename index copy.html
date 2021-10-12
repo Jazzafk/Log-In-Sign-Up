@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up/Log in Program</title>
+</head>
+<body>
+
+<h4>Sign Up</h4>
+
+<script>
+    //create username 
+var signUpUN = document.createElement('input')
+signUpUN.placeholder = 'set username'
+document.body.appendChild(signUpUN)
+    //create username 
+
+
+    //create password 
+var signUpPW = document.createElement('input')
+signUpPW.placeholder = 'set password'
+document.body.appendChild(signUpPW)
+    //create password 
+
+
+var signUpBTN = document.createElement('button')
+var txt1 = document.createTextNode('create account')
+signUpBTN.appendChild(txt1)
+document.body.appendChild(signUpBTN)
+
+
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/8.0.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.0.2/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+apiKey: "AIzaSyBUdQARqGGAXYDOlaRdBGMe9J9SD10FmFY",
+authDomain: "dbtest-5f475.firebaseapp.com",
+databaseURL: "https://dbtest-5f475-default-rtdb.firebaseio.com",
+projectId: "dbtest-5f475",
+storageBucket: "dbtest-5f475.appspot.com",
+messagingSenderId: "654569148141",
+appId: "1:654569148141:web:8510e6ce49095bafcf06e4",
+measurementId: "G-V5WXJ6D478"
+};
+
+firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+</script>
+
+
+
+
+<h4>Log In</h4>
+<script>
+
+
+   //enter username 
+   var logInUN = document.createElement('input')
+logInUN.placeholder = 'enter username'
+document.body.appendChild(logInUN)
+    //enter username 
+
+
+    //enter password 
+var logInPW = document.createElement('input')
+logInPW.type = 'password'
+logInPW.placeholder = 'enter password'
+document.body.appendChild(logInPW)
+    //enter password 
+
+
+var logInBTN = document.createElement('button')
+var txt2 = document.createTextNode('sign in')
+logInBTN.appendChild(txt2)
+document.body.appendChild(logInBTN)
+
+
+
+logInBTN.addEventListener('click', function(){
+
+    var UserArr = []
+    var PassArr = []
+    var length;
+    var currentKey = []
+    var loginKey = []
+    var user;
+    var current = []
+    
+    database.ref('/usernames').once("value", function(snapshot){
+        var obj = (snapshot.val())
+        var keysArr = (Object.keys(obj));
+        var length = keysArr.length
+
+        for(var i=0; i<keysArr.length; i++){
+        object = (obj[keysArr[i]])
+        UserArr.push(object.username)
+        }
+    })
+
+    database.ref('/passwords').once("value", function(snapshot){
+        var obj= (snapshot.val())
+        var keysArr = (Object.keys(obj));
+
+        for(var i=0; i<keysArr.length; i++){
+        object2 = (obj[keysArr[i]])
+        PassArr.push(object2.password)
+        }
+
+
+        for (var j=0; j<keysArr.length; j++){
+
+            var UNval = logInUN.value
+            var PWval = logInPW.value
+
+            //=====USER SIGN IN=======
+            if(UserArr[j]==UNval && PassArr[j] == PWval){
+                
+                var key = (keysArr[j])
+                loginKey.push(obj[key])
+                current.push(PWval)
+
+                logInUN.value = ''
+                logInPW.value = ''
+
+
+            var ele = document.getElementById('signedInDiv')
+            ele.style.display = 'block'
+            document.getElementById('welcome').innerHTML = ('Welcome ' + UNval +'! You are logged in.')
+
+
+                document.getElementById('showHide').addEventListener('click', function(){
+                    var PWdiv = document.getElementById('changePw')
+                    if(PWdiv.style.display ==='none'){
+                        PWdiv.style.display = 'block'
+                    }
+                    else{
+                        PWdiv.style.display = 'none'
+                    }
+                })
+
+
+
+                //=====password change=======
+            
+                document.getElementById('pwChange').addEventListener('click', function(){
+
+                    if (oldPw.value == current[0]){
+                        
+                        var newPw = document.getElementById('newPw')
+                        var final = ({password: newPw})
+
+                    (obj[key]) = final
+                    
+                    
+                    }
+
+                })
+
+
+            }
+            
+
+        }
+      
+    })
+
+
+
+
+
+
+
+})
+
+
+
+</script>
+
+
+
+
+<script>
+
+
+    
+signUpBTN.addEventListener('click', function(){
+        var un = signUpUN.value
+        var pw = signUpPW.value
+
+       
+        var key = ('username' + length)  
+
+        database.ref("/usernames").push({
+            username: un,
+        })
+   
+        
+
+   
+        var key2 = ('password' + length)
+
+        database.ref("/passwords").push({
+            password: pw,
+        })
+
+
+
+
+    })
+    </script>
+
+
+
+
+
+<div id = 'signedInDiv'>
+<br><br>
+<h4 id='welcome'></h4><button id='logOut'>log out</button>
+
+
+<br><br><br><br><br><br><br><br><br><br>
+<button id = 'showHide'>Change Password</button>
+
+</div>
+
+<div id = 'changePw'>
+<h5>change password?</h5>
+<input id ='oldPw' type='text' placeholder='enter old password'></input>
+<input id ='newPw' type='text' placeholder='enter new password'></input>
+<button id='pwChange'>Change Password</button>
+</div>
+
+
+<script>
+    function startup(){
+var ele = document.getElementById('signedInDiv')
+ele.style.display = 'none'
+
+var ele2 = document.getElementById('changePw')
+ele2.style.display = 'none'
+}
+startup()
+
+
+//====LOG OUT=======
+document.getElementById('logOut').addEventListener('click', function(){
+    document.getElementById('signedInDiv').style.display = 'none'
+   document.getElementById('changePw').style.display = 'none'
+   
+})
+//======LOG OUT=====
+</script>
+
+ 
+</body>
+</html>
