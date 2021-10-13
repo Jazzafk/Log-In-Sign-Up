@@ -59,6 +59,8 @@ firebase.initializeApp(firebaseConfig);
 <h4>Log In</h4>
 <script>
 
+logCheck()
+
 
    //enter username 
    var logInUN = document.createElement('input')
@@ -74,7 +76,7 @@ logInPW.placeholder = 'enter password'
 document.body.appendChild(logInPW)
     //enter password 
 
-
+ 
 var logInBTN = document.createElement('button')
 var txt2 = document.createTextNode('sign in')
 logInBTN.appendChild(txt2)
@@ -86,11 +88,12 @@ logInBTN.addEventListener('click', function(){
 
     var UserArr = []
     var PassArr = []
+    var UserKey = []
+    var PassKey = []
     var length;
     var currentKey = []
-    var loginKey = []
-    var user;
-    var current = []
+    loginKey = []
+    currentUser = []
     
     database.ref('/usernames').once("value", function(snapshot){
         var obj = (snapshot.val())
@@ -100,6 +103,7 @@ logInBTN.addEventListener('click', function(){
         for(var i=0; i<keysArr.length; i++){
         object = (obj[keysArr[i]])
         UserArr.push(object.username)
+        UserKey.push(keysArr[i])
         }
     })
 
@@ -109,9 +113,12 @@ logInBTN.addEventListener('click', function(){
 
         for(var i=0; i<keysArr.length; i++){
         object2 = (obj[keysArr[i]])
+        //console.log(keysArr)
         PassArr.push(object2.password)
+        PassKey.push(keysArr[i])
         }
 
+    
 
         for (var j=0; j<keysArr.length; j++){
 
@@ -121,47 +128,19 @@ logInBTN.addEventListener('click', function(){
             //=====USER SIGN IN=======
             if(UserArr[j]==UNval && PassArr[j] == PWval){
                 
+                database.ref("/log").push({
+                logedIn: UserArr[j],
+                logedPw: PassArr[j],
+                logedInKey: UserKey[j],
+                logedPwKey: PassKey[j]
+                 })
+                 logCheck()
                 var key = (keysArr[j])
                 loginKey.push(obj[key])
-                current.push(PWval)
+               
 
                 logInUN.value = ''
                 logInPW.value = ''
-
-
-            var ele = document.getElementById('signedInDiv')
-            ele.style.display = 'block'
-            document.getElementById('welcome').innerHTML = ('Welcome ' + UNval +'! You are logged in.')
-
-
-                document.getElementById('showHide').addEventListener('click', function(){
-                    var PWdiv = document.getElementById('changePw')
-                    if(PWdiv.style.display ==='none'){
-                        PWdiv.style.display = 'block'
-                    }
-                    else{
-                        PWdiv.style.display = 'none'
-                    }
-                })
-
-
-
-                //=====password change=======
-            
-                document.getElementById('pwChange').addEventListener('click', function(){
-
-                    if (oldPw.value == current[0]){
-                        
-                        var newPw = document.getElementById('newPw')
-                        var final = ({password: newPw})
-
-                    (obj[key]) = final
-                    
-                    
-                    }
-
-                })
-
 
             }
             
@@ -180,7 +159,22 @@ logInBTN.addEventListener('click', function(){
 
 
 
-</script>
+function logCheck(){
+database.ref('/log').on("value", function(snapshot){
+        var obj = (snapshot.val())
+        var keysArr = (Object.keys(obj))
+
+        if(keysArr[0].logedIn === undefined){
+            var ele = document.getElementById('signedInDiv')
+            ele.style.display = 'block'
+            document.getElementById('welcome').innerHTML = ('Welcome ' + (obj[keysArr[0]].logedIn) +'! You are logged in.')
+            
+        }
+})
+}
+
+
+            </script>
 
 
 
@@ -192,24 +186,15 @@ logInBTN.addEventListener('click', function(){
 signUpBTN.addEventListener('click', function(){
         var un = signUpUN.value
         var pw = signUpPW.value
-
-       
-        var key = ('username' + length)  
-
+ 
         database.ref("/usernames").push({
             username: un,
         })
    
-        
-
-   
-        var key2 = ('password' + length)
-
+    
         database.ref("/passwords").push({
             password: pw,
         })
-
-
 
 
     })
@@ -225,7 +210,9 @@ signUpBTN.addEventListener('click', function(){
 
 
 <br><br><br><br><br><br><br><br><br><br>
-<button id = 'showHide'>Change Password</button>
+<button id = 'showHide'>Change Password?</button>
+<br><br><br><br>
+<button id='delAcc'>Delete Account</button>
 
 </div>
 
@@ -248,13 +235,85 @@ ele2.style.display = 'none'
 startup()
 
 
-//====LOG OUT=======
-document.getElementById('logOut').addEventListener('click', function(){
+//====LOG OUT=======\
+
+    document.getElementById('logOut').addEventListener('click', function(){
+        
+
+        database.ref('/log').once("value", function(snapshot){
+        var obj = (snapshot.val())
+        var keysArr = (Object.keys(obj))
+
+        database.ref(`/log/${keysArr[0]}`).remove()
+                
+                 
+
+                })
+
     document.getElementById('signedInDiv').style.display = 'none'
-   document.getElementById('changePw').style.display = 'none'
+    document.getElementById('changePw').style.display = 'none'
    
 })
 //======LOG OUT=====
+
+
+
+
+//=======delete account========
+document.getElementById('delAcc').addEventListener('click',function(){
+
+    database.ref('/log').once("value", function(snapshot){
+        var obj = (snapshot.val())
+        var keysArr = (Object.keys(obj))
+        currentUser = (obj[keysArr[0]].logedIn)
+        currentPassword = (obj[keysArr[0]].logedPw)
+        currentUserKey = (obj[keysArr[0]].logedInKey)
+        currentPasswordKey = (obj[keysArr[0]].logedPwKey)
+    })
+    
+    database.ref(`/usernames/${currentUserKey}`).remove()
+    database.ref(`/passwords/${currentPasswordKey}`).remove()
+
+    alert('Your Account Has Been Deleted! Please log out to finish')
+
+  
+})
+
+
+
+//======password Change====
+document.getElementById('pwChange').addEventListener('click', function(){
+
+    database.ref('/log').once("value", function(snapshot){
+        var obj = (snapshot.val())
+        var keysArr = (Object.keys(obj))
+        currentPassword = (obj[keysArr[0]].logedPw)
+        currentPasswordKey = (obj[keysArr[0]].logedPwKey)
+    })
+console.log(currentPassword)
+
+if(oldPw.value==currentPassword){
+database.ref(`/passwords/${currentPasswordKey}`).update({
+    password: document.getElementById('newPw').value
+})
+alert('password changed! log out to compleate change')
+}
+
+})
+
+
+//=====show/hide password change=====
+document.getElementById('showHide').addEventListener('click', function(){
+                    var PWdiv = document.getElementById('changePw')
+                    if(PWdiv.style.display ==='none'){
+                        PWdiv.style.display = 'block'
+                    }
+                    else{
+                        PWdiv.style.display = 'none'
+                    }
+                })
+
+
 </script>
 
  
